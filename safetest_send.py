@@ -29,8 +29,8 @@ SMTP_PORT = 1025
 SMTP_USE_TLS = False
 SMTP_USER = ""
 SMTP_PASS = ""
-FROM_NAME = "Security Training - Exercice de Sensibilisation"
-FROM_EMAIL = "no-reply@lab.local"
+FROM_NAME = "Harxen Labs"
+FROM_EMAIL = "no-reply@harxen-labs.fr"
 
 # Landing page base URL (point to the Flask app below, or to a local webserver)
 LANDING_BASE = "http://172.20.10.6:5000/landing"  # replace with your lab server's IP
@@ -40,32 +40,32 @@ TARGETS_CSV = "targets.csv"             # expected columns: email,name,consent
 LOG_CSV = "safetest_log.csv"            # recorded fields for sends
 
 # Email content (clearly identified)
-SUBJECT_PREFIX = "[EXERCICE DE SENSIBILISATION]"
-SUBJECT = f"{SUBJECT_PREFIX} Test de sécurité - exercice (ne saisissez pas vos identifiants)"
+SUBJECT_PREFIX = "[SENSIBILISATION LAB]"
+SUBJECT = f"{SUBJECT_PREFIX} Test de sécurité"
 PLAINTEXT = """
 Bonjour {name},
 
-Ceci est un exercice pédagogique de sensibilisation au phishing réalisé dans le cadre d'un laboratoire autorisé.
-Ne saisissez JAMAIS de mots de passe réels ni d'informations sensibles sur les pages liées à ce test.
-
-Pour en savoir plus et voir le résultat de ce test, clique sur le lien suivant :
+Profitez d'une réduction exceptionnelle sur notre nouvelle collection de vêtements.
+Découvre la sélection en cliquant sur ce lien :
 {link}
 
 Merci,
-L'équipe sécurité (laboratoire)
+L'équipe Promo
 """
 
 HTML_TEMPLATE = """
 <html>
   <body>
     <div style="border:3px solid #cc0000;padding:10px;">
-      <h2 style="color:#cc0000;">EXERCICE DE SENSIBILISATION - LAB</h2>
+      <h2 style="color:#cc0000;">Offre exclusive</h2>
       <p>Bonjour {name},</p>
-      <p><strong>Ceci est un exercice pédagogique.</strong> Ne renseignez aucune information sensible.</p>
-      <p>Pour consulter le contenu pédagogique, ouvre ce lien :</p>
-      <p><a href="{link}">Voir la page de l'exercice (lab)</a></p>
+      
+      <p>
+Profitez d'une réduction exceptionnelle sur notre nouvelle collection de vêtements.
+Découvre la sélection en cliquant sur ce lien :
+      <p><a href="{link}">Voir offre</a></p>
       <hr/>
-      <small>Organisé par le labo. Contact: security-team@example.local</small>
+      <small>Organisé par promo</small>
     </div>
   </body>
 </html>
