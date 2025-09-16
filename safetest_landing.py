@@ -15,9 +15,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 from flask import request, render_template_string, jsonify
+
 APP_PORT = 5000
 LOG_FILE = "clicks.csv"
 SUBMISSIONS_FILE = "submissions.csv"
+TOKEN_MAP_FILE = "users_map_token.csv"
+
 app = Flask(__name__)
 
 LANDING_HTML = """
