@@ -20,18 +20,14 @@ app = Flask(__name__)
 LANDING_HTML = """
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Exercice de sensibilisation - Lab</title></head>
+<head><meta charset="utf-8"><title>Offre exclusive</title></head>
 <body>
   <div style="border:3px solid #cc0000;padding:12px;">
-    <h1 style="color:#cc0000;">Exercice de sensibilisation - Laboratoire</h1>
-    <p>Vous êtes sur une page créée uniquement pour un exercice pédagogique.</p>
-    <p><strong>Ne saisissez jamais d'informations sensibles.</strong></p>
-    <p>Ce test vise à sensibiliser aux e-mails suspects et à expliquer comment les repérer.</p>
-    <h3>Ressources :</h3>
-    <ul>
-      <li><a href="https://www.owasp.org" target="_blank" rel="noreferrer">OWASP</a></li>
-      <li><a href="https://www.cnil.fr" target="_blank" rel="noreferrer">CNIL (FR)</a></li>
-    </ul>
+    <h1 style="color:#cc0000;">Offre exclusive</h1>
+    <p>Pour beneficier de l'offre veuillez saisir vos informations de connexion et acceder au site.</p>
+    <input type="text" placeholder="Nom d'utilisateur"/><br/>
+    <input type="text" placeholder="Numero du client"/><br/>
+    <button>Valider</button>
     <p>Token de test : <code>{{ token }}</code></p>
   </div>
 </body>
