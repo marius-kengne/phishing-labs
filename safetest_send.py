@@ -40,8 +40,8 @@ TARGETS_CSV = "targets.csv"             # expected columns: email,name,consent
 LOG_CSV = "safetest_log.csv"            # recorded fields for sends
 
 # Email content (clearly identified)
-SUBJECT_PREFIX = "[SENSIBILISATION LAB]"
-SUBJECT = f"{SUBJECT_PREFIX} Test de sécurité"
+SUBJECT_PREFIX = "[PROMOTION]"
+SUBJECT = f"{SUBJECT_PREFIX} Offre spéciale"
 PLAINTEXT = """
 Bonjour {name},
 
@@ -50,7 +50,7 @@ Découvre la sélection en cliquant sur ce lien :
 {link}
 
 Merci,
-L'équipe Promo
+Offre spéciale - L'équipe Promo
 """
 
 HTML_TEMPLATE = """
