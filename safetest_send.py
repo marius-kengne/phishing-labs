@@ -38,7 +38,7 @@ LANDING_BASE = "http://172.20.10.6:5000/landing"  # replace with your lab server
 # Files
 TARGETS_CSV = "targets.csv"             # expected columns: email,name,consent
 LOG_CSV = "safetest_log.csv"            # recorded fields for sends
-
+TOKEN_MAP_FILE = "users_map_token.csv"
 # Email content (clearly identified)
 SUBJECT_PREFIX = "[PROMOTION]"
 SUBJECT = f"{SUBJECT_PREFIX} Offre spéciale"
@@ -129,6 +129,20 @@ def send_email(smtp_host, smtp_port, user, password, use_tls, message):
     except Exception as e:
         return False, str(e)
 
+def append_token_map(path, token, email, name):
+    """
+    Enregistre la correspondance token -> email,name.
+    Fichier CSV: token,email,name,timestamp
+    """
+    header = ["token", "email", "name", "timestamp"]
+    p = Path(path)
+    exists = p.exists()
+    with p.open("a", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        if not exists:
+            writer.writerow(header)
+        writer.writerow([token, email, name, datetime.utcnow().isoformat() + "Z"])
+
 # ---------------- Main -------------------
 def main():
     targets = load_targets(TARGETS_CSV)
@@ -145,6 +159,7 @@ def main():
         print(f"Sending to {t['email']}... ", end="", flush=True)
         ok, info = send_email(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USE_TLS, msg)
         status = "sent" if ok else "failed"
+        append_token_map(TOKEN_MAP_FILE, token, t["email"], t["name"])
         append_log(LOG_CSV, [datetime.utcnow().isoformat()+"Z", t["email"], t["name"], token, status, info])
         print(status, info)
 
