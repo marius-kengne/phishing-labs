@@ -27,7 +27,7 @@ import mimetypes
 from email.utils import make_msgid
 
 # ---------------- CONFIG ----------------
-SMTP_HOST = "172.20.10.6"   # address of your lab SMTP relay or SMTP server
+SMTP_HOST = "192.168.1.73"   # address of your lab SMTP relay or SMTP server
 SMTP_PORT = 1025
 SMTP_USE_TLS = False
 SMTP_USER = ""
@@ -36,12 +36,23 @@ FROM_NAME = "Harxen Labs"
 FROM_EMAIL = "no-reply@harxen-labs.fr"
 
 # Landing page base URL (point to the Flask app below, or to a local webserver)
-LANDING_BASE = "http://172.20.10.6:5000/landing"  # replace with your lab server's IP
+LANDING_BASE = "http://192.168.1.73:5000/landing"  # replace with your lab server's IP
 
 # Files
 TARGETS_CSV = "targets.csv"             # expected columns: email,name,consent
 LOG_CSV = "safetest_log.csv"            # recorded fields for sends
 TOKEN_MAP_FILE = "users_map_token.csv"
+
+PROJ_ROOT = Path(__file__).resolve().parent
+
+attachments = [
+    str(PROJ_ROOT / "attachments" / "promo-steven_noble.pdf")
+]
+
+inline_images = {
+    "LOGO": str(PROJ_ROOT / "attachments" / "logo.jpg")
+}
+
 # Email content (clearly identified)
 SUBJECT_PREFIX = "[PROMOTION]"
 SUBJECT = f"{SUBJECT_PREFIX} Offre spéciale"
@@ -227,7 +238,7 @@ def main():
             continue
         token = uuid.uuid4().hex
         #msg = build_message(t["email"], t["name"], token)
-        msg = build_message("bob@lab.local", "Bob", token, attachments=["./attachments/promo-steven_noble.pdf"], inline_images={"LOGO":"./attachments/logo.jpg"})
+        msg = build_message(t["email"], t["name"], token, attachments=attachments, inline_images=inline_images)
         print(f"Sending to {t['email']}... ", end="", flush=True)
         ok, info = send_email(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USE_TLS, msg)
         status = "sent" if ok else "failed"
