@@ -27,7 +27,7 @@ import mimetypes
 from email.utils import make_msgid
 
 # ---------------- CONFIG ----------------
-SMTP_HOST = "192.168.1.73"   # address of your lab SMTP relay or SMTP server
+SMTP_HOST = "172.20.10.6"   # address of your lab SMTP relay or SMTP server
 SMTP_PORT = 1025
 SMTP_USE_TLS = False
 SMTP_USER = ""
@@ -36,7 +36,7 @@ FROM_NAME = "Harxen Labs"
 FROM_EMAIL = "no-reply@harxen-labs.fr"
 
 # Landing page base URL (point to the Flask app below, or to a local webserver)
-LANDING_BASE = "http://192.168.1.73:5000/landing"  # replace with your lab server's IP
+LANDING_BASE = "http://172.20.10.6:5000/landing"  # replace with your lab server's IP
 
 # Files
 TARGETS_CSV = "targets.csv"             # expected columns: email,name,consent
@@ -80,12 +80,12 @@ Découvre la sélection en cliquant sur ce lien :
       <p><a href="{link}">Voir offre</a></p>
       <hr/>
       <small>Organisé par promo</small>
-        <img src="http://192.168.1.73:5000/attachments/logo.jpg" alt="Logo" style="width:200px;"/>
+        <img src="http://172.20.10.6:5000/attachments/logo.jpg" alt="Logo" style="width:200px;"/>
         <p style="text-align:center;">
-        <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf" target="_blank">
+        <a href="http://172.20.10.6:5000/attachments/promo-steven_noble.pdf" target="_blank">
             Voir la brochure des produits (PDF)
         </a>
-        <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf?dl=1" rel="noopener noreferrer" style="display:inline-block;padding:10px 14px;background:#007bff;color:#fff;border-radius:6px;text-decoration:none;">
+        <a href="http://172.20.10.6:5000/attachments/promo-steven_noble.pdf?dl=1" rel="noopener noreferrer" style="display:inline-block;padding:10px 14px;background:#007bff;color:#fff;border-radius:6px;text-decoration:none;">
         Télécharger la brochure (PDF)
         </a>
     </p>
