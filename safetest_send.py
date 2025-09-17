@@ -80,13 +80,14 @@ Découvre la sélection en cliquant sur ce lien :
       <p><a href="{link}">Voir offre</a></p>
       <hr/>
       <small>Organisé par promo</small>
-    </div>
-    <img src="cid:LOGO" alt="Logo" style="width:120px;"/>
-    <p style="text-align:center;">
+        <img src="cid:LOGO" alt="Logo" style="width:120px;"/>
+        <p style="text-align:center;">
         <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf" target="_blank">
             Voir la brochure des produits (PDF)
         </a>
     </p>
+    </div>
+
   </body>
 </html>
 """
@@ -132,7 +133,7 @@ def build_message_old(to_email, to_name, token):
     return msg
 
 
-def build_message(to_email, to_name, token, attachments=None, inline_images=None):
+def build_message2(to_email, to_name, token, attachments=None, inline_images=None):
    
     msg = EmailMessage()
     msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
@@ -193,6 +194,70 @@ def build_message(to_email, to_name, token, attachments=None, inline_images=None
     return msg
 
 
+def build_message(to_email, to_name, token, attachments=None, inline_images=None):
+    """
+    Construire un EmailMessage avec images inline (related) et attachments normaux.
+    - inline_images: dict placeholder -> path, ex {"LOGO": "./attachments/logo.jpg"}
+      Template HTML doit contenir: <img src="cid:LOGO" alt="Logo" />
+    - attachments: list of file paths (pdf, zip...)
+    """
+    msg = EmailMessage()
+    msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
+    msg["To"] = to_email
+    msg["Subject"] = SUBJECT
+    msg["X-Safe-Test"] = "true"
+
+    link = f"{LANDING_BASE}?token={token}"
+    plaintext = PLAINTEXT.format(name=to_name, link=link)
+    html = HTML_TEMPLATE.format(name=to_name, link=link)
+
+    # build multipart: text + html
+    msg.set_content(plaintext)
+    msg.add_alternative(html, subtype="html")
+
+    # attach inline images as related to the HTML part (do NOT use add_attachment for inline)
+    if inline_images:
+        html_part = msg.get_body(preferencelist=('html',))
+        for placeholder, path in inline_images.items():
+            if not os.path.isfile(path):
+                print(f"[warn] inline image not found: {path}")
+                continue
+            size = os.path.getsize(path)
+            if size == 0:
+                print(f"[warn] inline image empty: {path}")
+                continue
+            ctype, _ = mimetypes.guess_type(path)
+            if not ctype:
+                print(f"[warn] mime type unknown for {path}, forcing application/octet-stream")
+                ctype = "application/octet-stream"
+            maintype, subtype = ctype.split("/",1)
+            with open(path, "rb") as f:
+                data = f.read()
+            # IMPORTANT: Content-ID header must be in angle brackets, HTML uses cid:PLACEHOLDER
+            cid_header = f"<{placeholder}>"
+            html_part.add_related(data, maintype=maintype, subtype=subtype, cid=cid_header)
+
+    # attach regular files (pdf, zip...) as attachments
+    if attachments:
+        for path in attachments:
+            if not os.path.isfile(path):
+                print(f"[warn] attachment not found: {path}")
+                continue
+            size = os.path.getsize(path)
+            if size == 0:
+                print(f"[warn] attachment empty: {path}")
+                continue
+            ctype, _ = mimetypes.guess_type(path)
+            if not ctype:
+                ctype = "application/octet-stream"
+            maintype, subtype = ctype.split("/",1)
+            filename = os.path.basename(path)
+            with open(path, "rb") as f:
+                file_data = f.read()
+            msg.add_attachment(file_data, maintype=maintype, subtype=subtype, filename=filename)
+
+    return msg
+
 def send_email(smtp_host, smtp_port, user, password, use_tls, message):
     try:
         if use_tls:
@@ -240,6 +305,19 @@ def main():
         #msg = build_message(t["email"], t["name"], token)
         msg = build_message(t["email"], t["name"], token, attachments=attachments, inline_images=inline_images)
         print(f"Sending to {t['email']}... ", end="", flush=True)
+
+        # debug: inspecter la structure MIME
+        print("=== MIME structure for message ===")
+        for part in msg.walk():
+            payload = part.get_payload(decode=True)
+            size = len(payload) if payload else 0
+            print("ctype:", part.get_content_type(),
+                "cid:", part.get("Content-ID"),
+                "disp:", part.get_content_disposition(),
+                "fname:", part.get_filename(),
+                "size:", size)
+        print("=== end MIME ===")
+
         ok, info = send_email(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USE_TLS, msg)
         status = "sent" if ok else "failed"
         append_token_map(TOKEN_MAP_FILE, token, t["email"], t["name"])
