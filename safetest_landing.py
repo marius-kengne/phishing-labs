@@ -15,11 +15,14 @@ import json
 from datetime import datetime
 from pathlib import Path
 from flask import request, render_template_string, jsonify
+from flask import send_from_directory
+from pathlib import Path
 
 APP_PORT = 5000
 LOG_FILE = "clicks.csv"
 SUBMISSIONS_FILE = "submissions.csv"
 TOKEN_MAP_FILE = "users_map_token.csv"
+ATTACHMENTS_DIR = Path(__file__).resolve().parent / "attachments"
 
 app = Flask(__name__)
 
@@ -92,6 +95,13 @@ def append_submission_record(rec: dict):
         if not exists:
             writer.writerow(header)
         writer.writerow([rec.get(h, "-") for h in header])
+
+
+@app.route("/attachments/<path:filename>")
+def serve_attachment(filename):
+    # Sécurisé : n'autorise que les fichiers existants dans le dossier attachments
+    return send_from_directory(str(ATTACHMENTS_DIR), filename, as_attachment=False)
+
 
 @app.route("/landing")
 def landing():
