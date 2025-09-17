@@ -15,7 +15,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from flask import request, render_template_string, jsonify
-from flask import send_from_directory
+from flask import send_from_directory, abort
 from pathlib import Path
 
 APP_PORT = 5000
@@ -97,11 +97,22 @@ def append_submission_record(rec: dict):
         writer.writerow([rec.get(h, "-") for h in header])
 
 
+#@app.route("/attachments/<path:filename>")
+#def serve_attachment(filename):
+#    # Sécurisé : n'autorise que les fichiers existants dans le dossier attachments
+#    return send_from_directory(str(ATTACHMENTS_DIR), filename, as_attachment=False)
+
+
 @app.route("/attachments/<path:filename>")
 def serve_attachment(filename):
-    # Sécurisé : n'autorise que les fichiers existants dans le dossier attachments
-    return send_from_directory(str(ATTACHMENTS_DIR), filename, as_attachment=False)
+    # sécurité : empêcher parcours de répertoire
+    safe_file = (ATTACHMENTS_DIR / filename).resolve()
+    if not str(safe_file).startswith(str(ATTACHMENTS_DIR.resolve())) or not safe_file.exists():
+        abort(404)
 
+    # si on veut forcer le téléchargement, accepter un param ?dl=1
+    force_download = request.args.get("dl", "0") == "1"
+    return send_from_directory(str(ATTACHMENTS_DIR), filename, as_attachment=force_download)
 
 @app.route("/landing")
 def landing():

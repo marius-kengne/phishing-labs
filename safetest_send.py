@@ -85,6 +85,9 @@ Découvre la sélection en cliquant sur ce lien :
         <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf" target="_blank">
             Voir la brochure des produits (PDF)
         </a>
+        <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf?dl=1" rel="noopener noreferrer" style="display:inline-block;padding:10px 14px;background:#007bff;color:#fff;border-radius:6px;text-decoration:none;">
+        Télécharger la brochure (PDF)
+        </a>
     </p>
     </div>
 
