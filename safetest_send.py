@@ -80,7 +80,7 @@ Découvre la sélection en cliquant sur ce lien :
       <p><a href="{link}">Voir offre</a></p>
       <hr/>
       <small>Organisé par promo</small>
-        <img src="cid:LOGO" alt="Logo" style="width:120px;"/>
+        <img src="http://192.168.1.73:5000/attachments/logo.jpg" alt="Logo" style="width:120px;"/>
         <p style="text-align:center;">
         <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf" target="_blank">
             Voir la brochure des produits (PDF)
