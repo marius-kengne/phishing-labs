@@ -22,6 +22,9 @@ import sys
 from email.message import EmailMessage
 from datetime import datetime
 from pathlib import Path
+import os
+import mimetypes
+from email.utils import make_msgid
 
 # ---------------- CONFIG ----------------
 SMTP_HOST = "172.20.10.6"   # address of your lab SMTP relay or SMTP server
@@ -97,7 +100,7 @@ def append_log(path, row):
             writer.writerow(header)
         writer.writerow(row)
 
-def build_message(to_email, to_name, token):
+def build_message_old(to_email, to_name, token):
     msg = EmailMessage()
     msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
     msg["To"] = to_email
@@ -109,6 +112,74 @@ def build_message(to_email, to_name, token):
     html = HTML_TEMPLATE.format(name=to_name, link=link)
     msg.set_content(plaintext)
     msg.add_alternative(html, subtype="html")
+    return msg
+
+
+def build_message(to_email, to_name, token, attachments=None, inline_images=None):
+    """
+    Construire EmailMessage avec :
+      - attachments: list of file paths to attach (regular attachments)
+      - inline_images: dict mapping placeholder_id -> file path
+        In your HTML template, reference the image like: <img src="cid:PLACEHOLDER_ID">
+    """
+    msg = EmailMessage()
+    msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
+    msg["To"] = to_email
+    msg["Subject"] = SUBJECT
+    msg["X-Safe-Test"] = "true"
+
+    link = f"{LANDING_BASE}?token={token}"
+    plaintext = PLAINTEXT.format(name=to_name, link=link)
+    html = HTML_TEMPLATE.format(name=to_name, link=link)
+
+    # Prepare inline images: replace placeholder ids with real content-id values
+    # inline_images expected: { "LOGO": "/path/to/logo.png", ... }
+    cid_map = {}
+    if inline_images:
+        for placeholder, path in inline_images.items():
+            cid = make_msgid()               # returns like '<...>'
+            cid_value = cid[1:-1]            # strip angle brackets for HTML src
+            cid_map[placeholder] = cid       # keep the original (with < >) for add_related
+            html = html.replace(f"cid:{placeholder}", f"cid:{cid_value}")
+
+    # Set plaintext and html parts
+    msg.set_content(plaintext)
+    msg.add_alternative(html, subtype="html")
+
+    # Attach inline images to the HTML part
+    if inline_images:
+        # get the html part (EmailMessage) to add related parts
+        html_part = msg.get_body(preferencelist=('html',))
+        for placeholder, path in inline_images.items():
+            if not os.path.isfile(path):
+                # skip missing files but warn in logs
+                print(f"[warn] inline image not found: {path}")
+                continue
+            ctype, _ = mimetypes.guess_type(path)
+            if ctype is None:
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+            with open(path, 'rb') as f:
+                data = f.read()
+            # add_related will set Content-ID header from cid parameter
+            html_part.add_related(data, maintype=maintype, subtype=subtype, cid=cid_map[placeholder])
+
+    # Attach regular files
+    if attachments:
+        for path in attachments:
+            if not os.path.isfile(path):
+                print(f"[warn] attachment not found: {path}")
+                continue
+            ctype, _ = mimetypes.guess_type(path)
+            if ctype is None:
+                ctype = 'application/octet-stream'
+            maintype, subtype = ctype.split('/', 1)
+            filename = os.path.basename(path)
+            with open(path, 'rb') as f:
+                file_data = f.read()
+            # add_attachment automatically sets Content-Disposition: attachment and filename
+            msg.add_attachment(file_data, maintype=maintype, subtype=subtype, filename=filename)
+
     return msg
 
 def send_email(smtp_host, smtp_port, user, password, use_tls, message):
@@ -155,7 +226,8 @@ def main():
             print(f"Skip (no consent): {t['email']}")
             continue
         token = uuid.uuid4().hex
-        msg = build_message(t["email"], t["name"], token)
+        #msg = build_message(t["email"], t["name"], token)
+        msg = build_message("bob@lab.local", "Bob", token, attachments=["./attachments/promo-steven_noble.pdf"], inline_images={"LOGO":"./attachments/logo.jpg"})
         print(f"Sending to {t['email']}... ", end="", flush=True)
         ok, info = send_email(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USE_TLS, msg)
         status = "sent" if ok else "failed"
