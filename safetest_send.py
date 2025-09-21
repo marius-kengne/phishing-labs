@@ -1,18 +1,4 @@
 #!/usr/bin/env python3
-"""
-safetest_send.py
-Safe, pedagogical email sender for authorized phishing awareness exercises (lab use only).
-- Clearly identifies the message as an exercise in the subject and header
-- Reads targets from a CSV (email,name,consent)
-- Generates a unique tracking token per recipient and logs sends to a CSV
-- Does NOT capture passwords or behave maliciously
-- Optional: points links to a local landing page you host (Flask app included separately)
-
-Usage:
-  1. Edit the SMTP settings in the CONFIG section below.
-  2. Prepare targets.csv with columns: email,name,consent (consent = yes/no)
-  3. Run: python3 safetest_send.py
-"""
 
 import csv
 import smtplib
@@ -32,8 +18,8 @@ SMTP_PORT = 1025
 SMTP_USE_TLS = False
 SMTP_USER = ""
 SMTP_PASS = ""
-FROM_NAME = "Harxen Labs"
-FROM_EMAIL = "no-reply@harxen-labs.fr"
+FROM_NAME = "Concours 2025"
+FROM_EMAIL = "concours-2025@media.bpifrance.fr"
 
 # Landing page base URL (point to the Flask app below, or to a local webserver)
 LANDING_BASE = "http://192.168.1.73:5000/landing"  # replace with your lab server's IP
@@ -68,30 +54,112 @@ Offre spéciale - L'équipe Promo
 """
 
 HTML_TEMPLATE = """
-<html>
-  <body>
-    <div style="border:3px solid #cc0000;padding:10px;">
-      <h2 style="color:#cc0000;">Offre exclusive</h2>
-      <p>Bonjour {name},</p>
-      
-      <p>
-Profitez d'une réduction exceptionnelle sur notre nouvelle collection de vêtements.
-Découvre la sélection en cliquant sur ce lien :
-      <p><a href="{link}">Voir offre</a></p>
-      <hr/>
-      <small>Organisé par promo</small>
-        <img src="http://192.168.1.73:5000/attachments/logo.jpg" alt="Logo" style="width:200px;"/>
-        <p style="text-align:center;">
-        <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf" target="_blank">
-            Voir la brochure des produits (PDF)
-        </a>
-        <a href="http://192.168.1.73:5000/attachments/promo-steven_noble.pdf?dl=1" rel="noopener noreferrer" style="display:inline-block;padding:10px 14px;background:#007bff;color:#fff;border-radius:6px;text-decoration:none;">
-        Télécharger la brochure (PDF)
-        </a>
-    </p>
-    </div>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<title></title>
+	<meta charset="UTF-8">
+	<link href="https://github.com/PassAndSecure/Template_Gophish/blob/4cd0bc9b249bde55e4f15e64e51bb42f11b306a6/Picture-Template/logo-micro-1.png?raw=true" rel="shortcut icon" />
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+	<style type="text/css">/* Couleurs et styles simples, compatibles e-mails */
+    body { margin:0; padding:0; background:#ffffff; font-family: Arial, Helvetica, sans-serif; color:#222; }
+    .wrapper { width:100%; background:#ffffff; padding:20px 0; }
+    .container { max-width:600px; margin:0 auto; background:#fff; border:1px solid #ececec; }
+    .header { padding:28px 24px 12px; text-align:center; }
+    .logo { display:block; margin:0 auto; max-width:180px; height:auto; }
+    .hero { padding:12px 24px 20px; text-align:left; }
+    h1 { margin:0 0 8px 0; font-size:20px; color:#6b6b6b; font-weight:600; }
+    p { margin:0 0 12px 0; line-height:1.5; color:#222; }
+    .highlight { color:#222; font-weight:600; }
+    .panel { margin:14px 0; padding:14px; border-radius:6px; background:#fff9e6; border:1px solid #f0e5b8; }
+    .btn { display:inline-block; padding:10px 16px; background:#f6c400; color:#111; text-decoration:none; border-radius:6px; font-weight:700; }
+    .meta { font-size:13px; color:#6b6b6b; margin-top:8px; }
+    .footer { padding:14px 24px; font-size:12px; color:#777; background: #fbfbfb; border-top:1px solid #eee; }
+    a { color:#f6c400; text-decoration:none; }
+    /* Responsive */
+    @media (max-width:480px) {
+      .container { width:92%; }
+      .logo { max-width:140px; }
+    }
+	</style>
+	<style type="text/css">body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #2c2d35;
+            color:white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            background-color: #654AE7;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .email-body {
+            padding: 20px;
+        }
+        .email-body a {
+            text-decoration: none;
+        }
+        .email-footer {
+            margin-top: 20px;
+            padding: 5px;
+            font-size: 12px;
+            color: #888888;
+            background-color: #302F2F;
+            text-align: left;
+        }
+        .email-footer a {
+            color: #0078d4;
+            text-decoration: none;
+        }
+	</style>
+</head>
+<body>
+<div class="email-container">
+<div class="email-body">
+<div class="header"><img alt="Goravira" class="logo" src="https://storageprdv2inwink.blob.core.windows.net/cu-4fca10a0-d711-4c30-a65b-b2ccd4560137-public/84b6c04b-dd07-4bc2-956f-b40d8000bf22/assets/pictures/logo-bpifrance-SS_Reserve.png" /></div>
 
-  </body>
+<div class="hero" role="main">
+<p>Bonjour <span class="highlight">{{.FirstName}} {{.LastName}}</span>,</p>
+
+<p>Bpifrance a le plaisir de lancer un Concours de S&eacute;lection des Startups visant &agrave; rep&eacute;rer et accompagner les projets les plus prometteurs de votre r&eacute;seau.</p>
+&nbsp;
+
+<p><strong>Pourquoi participer ? </strong> Possibilit&eacute; d&rsquo;obtenir un accompagnement personnalis&eacute; (mentorat, mise en relation avec investisseurs) ; Visibilit&eacute; lors d&rsquo;&eacute;v&eacute;nements d&eacute;di&eacute;s ; Acc&egrave;s &agrave; des ressources et ateliers pratiques.</p>
+
+<p><strong>Comment s&rsquo;inscrire ? </strong> Veuillez cliquer sur je m&#39;inscris ci-dessous pour acc&eacute;der au formulaire d&rsquo;inscription.</p>
+
+<center>
+<p style="margin-top:12px;"><a class="btn" href="{{.URL}}" rel="noopener" target="_blank">Je m&#39;inscris</a></p>
+</center>
+
+<p>&nbsp;</p>
+
+<div aria-hidden="false" class="panel">
+<p style="margin:0;"><strong>Date limite d&rsquo;inscription :</strong> 30/09/2025</p>
+</div>
+
+<p style="margin-top:14px;">Si vous n&#39;&ecirc;tes pas &agrave; l&#39;origine de cette activit&eacute;, contactez notre support : <a href="mailto:support@goravira.example">support2025@media.bpifrance.fr</a></p>
+</div>
+
+<div class="footer">
+<p style="margin:0 0 6px 0;">Bpifrance &mdash; concours 2025</p>
+
+<p style="margin:0 0 6px 0;">Adresse : 24 Rue Drouot, 75009 Paris &bull; <a href="">Conditions &amp; confidentialit&eacute;</a></p>
+
+<p style="margin:8px 0 0 0; font-size:11px; color:#999;">Cet e-mail a &eacute;t&eacute; envoy&eacute; &agrave; {{.Email}}. Si vous ne souhaitez plus recevoir ces notifications, <a href="https://goravira.example/unsubscribe">cliquez ici</a>.</p>
+</div>
+<!--p><img alt="Tracker" src="{{.TrackingURL}}" style="display:none;" /> {{.Tracker}}</p--></div>
+</div>
+</body>
 </html>
 """
 
@@ -107,13 +175,21 @@ def load_targets(path):
         for row in reader:
             # Normalize keys
             email = row.get("email") or row.get("Email") or ""
-            name = row.get("name") or row.get("Name") or email.split("@")[0]
+            firstName = row.get("FirstName") or row.get("firstName") or ""
+            lastName = row.get("LastName") or row.get("lastName") or ""
+            position = row.get("Position") or row.get("position") or ""
             consent = (row.get("consent") or row.get("Consent") or "").strip().lower()
-            targets.append({"email": email.strip(), "name": name.strip(), "consent": consent})
+            targets.append({
+                "Email": email.strip(), 
+                "FirstName": firstName.strip(),
+                "LastName": lastName.strip(),
+                "Position": position.strip(), 
+                "consent": consent
+            })
     return targets
 
 def append_log(path, row):
-    header = ["timestamp","email","name","token","status","info"]
+    header = ["timestamp", "Email", "FirstName", "token", "status", "info"]
     exists = Path(path).exists()
     with open(path, "a", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -121,23 +197,7 @@ def append_log(path, row):
             writer.writerow(header)
         writer.writerow(row)
 
-def build_message_old(to_email, to_name, token):
-    msg = EmailMessage()
-    msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
-    msg["To"] = to_email
-    msg["Subject"] = SUBJECT
-    # Add explicit headers to reduce ambiguity
-    msg["X-Safe-Test"] = "true"
-    link = f"{LANDING_BASE}?token={token}"
-    plaintext = PLAINTEXT.format(name=to_name, link=link)
-    html = HTML_TEMPLATE.format(name=to_name, link=link)
-    msg.set_content(plaintext)
-    msg.add_alternative(html, subtype="html")
-    return msg
-
-
-def build_message2(to_email, to_name, token, attachments=None, inline_images=None):
-   
+def build_message(to_email, to_name, token, attachments=None, inline_images=None):
     msg = EmailMessage()
     msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
     msg["To"] = to_email
@@ -146,145 +206,94 @@ def build_message2(to_email, to_name, token, attachments=None, inline_images=Non
 
     link = f"{LANDING_BASE}?token={token}"
     plaintext = PLAINTEXT.format(name=to_name, link=link)
-    html = HTML_TEMPLATE.format(name=to_name, link=link)
-
-    # Prepare cid map: placeholder -> cid (no <>)
-    cid_map = {}
-    if inline_images:
-        for placeholder, path in inline_images.items():
-            # generate short cid id (no angle brackets)
-            cid_id = uuid.uuid4().hex
-            cid_map[placeholder] = cid_id
-            # replace occurrences in html: cid:PLACEHOLDER -> cid:cid_id
-            html = html.replace(f"cid:{placeholder}", f"cid:{cid_id}")
+    html = HTML_TEMPLATE.replace("{{.FirstName}}", to_name)
+    html = html.replace("{{.LastName}}", "")
+    html = html.replace("{{.URL}}", link)
+    html = html.replace("{{.Email}}", to_email)
 
     # Set plaintext and html parts
     msg.set_content(plaintext)
     msg.add_alternative(html, subtype="html")
 
-    # Attach inline images as related to the HTML part
+    # Attach inline images
     if inline_images:
-        html_part = msg.get_body(preferencelist=('html',))
-        for placeholder, path in inline_images.items():
-            if not os.path.isfile(path):
-                print(f"[warn] inline image not found: {path}")
-                continue
-            ctype, _ = mimetypes.guess_type(path)
-            if ctype is None:
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
-            with open(path, 'rb') as f:
-                data = f.read()
-            # add_related expects cid with angle brackets in header -> provide "<cid>"
-            cid_header = f"<{cid_map[placeholder]}>"
-            html_part.add_related(data, maintype=maintype, subtype=subtype, cid=cid_header)
+        for placeholder, image_path in inline_images.items():
+            if os.path.exists(image_path):
+                with open(image_path, 'rb') as img:
+                    mime_type, encoding = mimetypes.guess_type(image_path)
+                    if mime_type:
+                        maintype, subtype = mime_type.split('/', 1)
+                    else:
+                        maintype, subtype = 'application', 'octet-stream'
+                    
+                    msg.get_payload()[1].add_related(
+                        img.read(), 
+                        maintype=maintype, 
+                        subtype=subtype, 
+                        cid=placeholder
+                    )
 
-    # Attach regular files (PDF, ZIP, etc.)
+    # Attach regular files
     if attachments:
-        for path in attachments:
-            if not os.path.isfile(path):
-                print(f"[warn] attachment not found: {path}")
-                continue
-            ctype, _ = mimetypes.guess_type(path)
-            if ctype is None:
-                ctype = 'application/octet-stream'
-            maintype, subtype = ctype.split('/', 1)
-            filename = os.path.basename(path)
-            with open(path, 'rb') as f:
-                file_data = f.read()
-            msg.add_attachment(file_data, maintype=maintype, subtype=subtype, filename=filename)
-
-    return msg
-
-
-def build_message(to_email, to_name, token, attachments=None, inline_images=None):
-    """
-    Construire un EmailMessage avec images inline (related) et attachments normaux.
-    - inline_images: dict placeholder -> path, ex {"LOGO": "./attachments/logo.jpg"}
-      Template HTML doit contenir: <img src="cid:LOGO" alt="Logo" />
-    - attachments: list of file paths (pdf, zip...)
-    """
-    msg = EmailMessage()
-    msg["From"] = f"{FROM_NAME} <{FROM_EMAIL}>"
-    msg["To"] = to_email
-    msg["Subject"] = SUBJECT
-    msg["X-Safe-Test"] = "true"
-
-    link = f"{LANDING_BASE}?token={token}"
-    plaintext = PLAINTEXT.format(name=to_name, link=link)
-    html = HTML_TEMPLATE.format(name=to_name, link=link)
-
-    # build multipart: text + html
-    msg.set_content(plaintext)
-    msg.add_alternative(html, subtype="html")
-
-    # attach inline images as related to the HTML part (do NOT use add_attachment for inline)
-    if inline_images:
-        html_part = msg.get_body(preferencelist=('html',))
-        for placeholder, path in inline_images.items():
-            if not os.path.isfile(path):
-                print(f"[warn] inline image not found: {path}")
-                continue
-            size = os.path.getsize(path)
-            if size == 0:
-                print(f"[warn] inline image empty: {path}")
-                continue
-            ctype, _ = mimetypes.guess_type(path)
-            if not ctype:
-                print(f"[warn] mime type unknown for {path}, forcing application/octet-stream")
-                ctype = "application/octet-stream"
-            maintype, subtype = ctype.split("/",1)
-            with open(path, "rb") as f:
-                data = f.read()
-            # IMPORTANT: Content-ID header must be in angle brackets, HTML uses cid:PLACEHOLDER
-            cid_header = f"<{placeholder}>"
-            html_part.add_related(data, maintype=maintype, subtype=subtype, cid=cid_header)
-
-    # attach regular files (pdf, zip...) as attachments
-    if attachments:
-        for path in attachments:
-            if not os.path.isfile(path):
-                print(f"[warn] attachment not found: {path}")
-                continue
-            size = os.path.getsize(path)
-            if size == 0:
-                print(f"[warn] attachment empty: {path}")
-                continue
-            ctype, _ = mimetypes.guess_type(path)
-            if not ctype:
-                ctype = "application/octet-stream"
-            maintype, subtype = ctype.split("/",1)
-            filename = os.path.basename(path)
-            with open(path, "rb") as f:
-                file_data = f.read()
-            msg.add_attachment(file_data, maintype=maintype, subtype=subtype, filename=filename)
+        for attachment_path in attachments:
+            if os.path.exists(attachment_path):
+                with open(attachment_path, 'rb') as f:
+                    file_data = f.read()
+                    mime_type, encoding = mimetypes.guess_type(attachment_path)
+                    if mime_type:
+                        maintype, subtype = mime_type.split('/', 1)
+                    else:
+                        maintype, subtype = 'application', 'octet-stream'
+                    
+                    filename = os.path.basename(attachment_path)
+                    msg.add_attachment(
+                        file_data,
+                        maintype=maintype,
+                        subtype=subtype,
+                        filename=filename
+                    )
 
     return msg
 
 def send_email(smtp_host, smtp_port, user, password, use_tls, message):
     try:
-        if use_tls:
-            context = ssl.create_default_context()
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+        print(f"  Connecting to {smtp_host}:{smtp_port}...")
+        
+        # Augmentez le timeout à 60 secondes
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=60) as server:
+            print("  SMTP connection established")
+            
+            if use_tls:
+                print("  Starting TLS...")
+                context = ssl.create_default_context()
                 server.starttls(context=context)
-                if user:
-                    server.login(user, password)
-                server.send_message(message)
-        else:
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-                if user:
-                    server.login(user, password)
-                server.send_message(message)
-        return True, "OK"
+            
+            if user:
+                print("  Logging in...")
+                server.login(user, password)
+            
+            print("  Sending message...")
+            # Debug: affiche la taille du message
+            print(f"  Message size: {len(message.as_bytes())} bytes")
+            
+            server.send_message(message)
+            print("  Email sent successfully")
+            return True, "OK"
+            
+    except smtplib.SMTPConnectError as e:
+        return False, f"Connection failed: {str(e)}"
+    except smtplib.SMTPServerDisconnected as e:
+        return False, f"Server disconnected: {str(e)}"
     except Exception as e:
-        return False, str(e)
+        return False, f"Error: {str(e)}"
+    
 
 def append_token_map(path, token, email, name):
     """
     Enregistre la correspondance token -> email,name.
     Fichier CSV: token,email,name,timestamp
     """
-    header = ["token", "email", "name", "timestamp"]
+    header = ["token", "Email", "FirstName", "timestamp"]
     p = Path(path)
     exists = p.exists()
     with p.open("a", newline="", encoding="utf-8") as f:
@@ -302,30 +311,34 @@ def main():
 
     for t in targets:
         if t["consent"] != "yes":
-            print(f"Skip (no consent): {t['email']}")
+            print(f"Skip (no consent): {t['Email']}")
             continue
+        
         token = uuid.uuid4().hex
-        #msg = build_message(t["email"], t["name"], token)
-        msg = build_message(t["email"], t["name"], token, attachments=attachments, inline_images=inline_images)
-        print(f"Sending to {t['email']}... ", end="", flush=True)
-
-        # debug: inspecter la structure MIME
-        print("=== MIME structure for message ===")
-        for part in msg.walk():
-            payload = part.get_payload(decode=True)
-            size = len(payload) if payload else 0
-            print("ctype:", part.get_content_type(),
-                "cid:", part.get("Content-ID"),
-                "disp:", part.get_content_disposition(),
-                "fname:", part.get_filename(),
-                "size:", size)
-        print("=== end MIME ===")
-
+        msg = build_message(
+            t["Email"], 
+            t["FirstName"], 
+            token, 
+            attachments=attachments, 
+            inline_images=inline_images
+        )
+        
+        print(f"Sending to {t['Email']}... ", end="", flush=True)
+        
         ok, info = send_email(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_USE_TLS, msg)
         status = "sent" if ok else "failed"
-        append_token_map(TOKEN_MAP_FILE, token, t["email"], t["name"])
-        append_log(LOG_CSV, [datetime.utcnow().isoformat()+"Z", t["email"], t["name"], token, status, info])
-        print(status, info)
+        
+        append_token_map(TOKEN_MAP_FILE, token, t["Email"], t["FirstName"])
+        append_log(LOG_CSV, [
+            datetime.utcnow().isoformat() + "Z", 
+            t["Email"], 
+            t["FirstName"], 
+            token, 
+            status, 
+            info
+        ])
+        
+        print(f"{status}: {info}")
 
 if __name__ == "__main__":
     main()
